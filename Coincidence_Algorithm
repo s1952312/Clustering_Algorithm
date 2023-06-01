@@ -1,0 +1,133 @@
+% Before running this code, ensure outputs are selected as desired (to deselect an output file, comment out relevant sections %
+
+%% User input of target directory %%
+
+file_directory_1 = uigetdir('Z:\Katie Morris\DATA\TIRF\20220803_invitro_exchange\');
+directory_1 = dir([file_directory_1, '\*.csv']);
+
+file_directory_2 = uigetdir('Z:\Katie Morris\DATA\TIRF\20220803_invitro_exchange\');
+directory_2 = dir([file_directory_2, '\*.csv']);
+
+% file_directory_3 = uigetdir('Z:\Katie Morris\DATA\TIRF\20220803_invitro_exchange\');
+% directory_3 = dir([file_directory_3, '\*.csv']);
+
+%% Generate the empty variables %%
+
+numfiles = length(directory_1);
+
+data_1 = cell(numfiles,1);
+data_2 = cell(numfiles,1);
+data_3 = cell(numfiles,1);
+
+number_coinc_events = 0;
+number_chance_events = 0;
+number_FRET_events = 0;
+total_number_events_1 = 0;
+total_number_events_2 = 0;
+
+coinc_loc = [];
+intensities_1 = [];
+intensities_2 = [];
+intensities_3 = [];
+
+%% Read in the raw data and determine coincidence %%
+
+for j = 1:numfiles
+    data_1{j,1} = readmatrix(fullfile(file_directory_1, directory_1(j).name));
+    data_2{j,1} = readmatrix(fullfile(file_directory_2, directory_2(j).name));
+%    data_3{j,1} = readmatrix(fullfile(file_directory_3, directory_3(j).name));
+    
+    raw_data_1 = data_1{j,1};
+    raw_data_2 = data_2{j,1};
+%    raw_data_3 = data_3{j,1};
+    
+    mean_1 = raw_data_1(:,2);
+    mean_2 = raw_data_2(:,2);
+%    mean_3 = raw_data_3(:,2);
+    
+    X_1 = raw_data_1(:,3);
+    X_2 = raw_data_2(:,3);
+%    X_3 = raw_data_3(:,3);
+    
+    Y_1 = raw_data_1(:,4);
+    Y_2 = raw_data_2(:,4);
+%    Y_3 = raw_data_3(:,4);
+    
+    length_vector_1 = length(X_1);
+    length_vector_2 = length(X_2);
+%    length_vector_3 = length(X_3);
+    
+    var1 = ['File ', num2str(j)];
+    disp(var1)
+    
+    for i = 1:length_vector_1
+        for k = 1:length_vector_2
+            coincident_param = sqrt((X_2(k) - X_1(i))^2 + (Y_2(k) - Y_1(i))^2);
+            
+            if coincident_param <= sqrt(4)
+                %varx = ['breakpoint ', num2str(i), num2str(k)];
+                %disp(varx)
+                number_coinc_events = number_coinc_events + 1;
+                cl = [j i k];
+                coinc_loc = [coinc_loc;cl];
+            else
+                %varx = ['breakpoint ', num2str(i), num2str(k)];
+                %disp(varx)
+            end
+            
+%             for m = 1:length_vector_3
+%                 FRET_param_AF488 = sqrt((abs(X_3(m) - X_1(i)))^2 + (abs(Y_3(m) - Y_1(i)))^2);
+%                 FRET_param_SiR = sqrt((abs(X_3(m) - X_2(k)))^2 + (abs(Y_3(m) - Y_2(k)))^2);
+%                 if FRET_param_AF488 <= sqrt(4) && FRET_param_SiR <= sqrt(4)
+%                     number_FRET_events = number_FRET_events + 1;
+%                     intensities_1 = [intensities_1;mean_1(i)];
+%                     intensities_2 = [intensities_2;mean_2(k)];
+%                     intensities_3 = [intensities_3;mean_3(m)];
+%                 else
+%                 end
+%             end
+        end
+
+%         for m = 1:length_vector_3
+%             chance_coincident_param = sqrt((abs(X_3(m) - X_1(i)))^2 + (abs(Y_3(m) - Y_1(i)))^2);
+%             if chance_coincident_param <= sqrt(4)
+%                 number_chance_events = number_chance_events + 1;
+% %                 intensities_1 = [intensities_1;mean_1(m)];
+% %                 intensities_2 = [intensities_2;mean_2(m)];
+% %                 intensities_3 = [intensities_3;mean_3(m)];
+%             else
+%             end
+%         end
+    end
+    total_number_events_1 = total_number_events_1 + length_vector_1;
+    total_number_events_2 = total_number_events_2 + length_vector_2;
+%     intensities_1 = [intensities_1;mean_1];
+%     intensities_2 = [intensities_2;mean_2];
+    
+end
+
+
+%% Define outputs %%    
+
+% [file,path] = uiputfile('*.*','Select save location','coincident_locations_file.csv');
+% file2 = 'intensities_647.csv';
+% file3 = 'intensities_488.csv';
+% 
+% full_file = append(path,file);
+% full_file_2 = append(path,file2);
+% full_file_3 = append(path,file3);
+% 
+% writematrix(coinc_loc, full_file)
+% writematrix(intensities_2, full_file_2)
+% writematrix(intensities_1, full_file_3)
+
+Q = ['The number of coincident events is ', num2str(number_coinc_events)];
+% Q_1 = ['The number of coincident chance events is ', num2str(number_chance_events)];
+Q_2 = ['The number of events in the 488 channel is ', num2str(total_number_events_1)];
+Q_3 = ['The number of events in the 647 channel is ', num2str(total_number_events_2)];
+
+
+disp(Q_2)
+disp(Q_3)
+disp(Q)
+% disp(Q_1)
